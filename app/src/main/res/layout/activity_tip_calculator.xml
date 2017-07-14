@@ -116,6 +116,15 @@
         android:layout_alignLeft="@+id/tipTextView"
         android:padding="5dp"
         android:text="@string/total_amount"
-        android:textSize="20sp" />    
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/totalLabel"
+        android:layout_marginTop="35dp"
+        android:layout_toRightOf="@+id/billAmountLabel"
+        android:text="Save" />
 
 </RelativeLayout>

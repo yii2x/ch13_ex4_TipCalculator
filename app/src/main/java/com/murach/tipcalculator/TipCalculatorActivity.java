@@ -1,9 +1,11 @@
 package com.murach.tipcalculator;
 
 import java.text.NumberFormat;
+import java.util.ArrayList;
 
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -24,12 +26,14 @@ implements OnEditorActionListener, OnClickListener {
     private TextView percentTextView;   
     private Button   percentUpButton;
     private Button   percentDownButton;
+    private Button   saveButton;
     private TextView tipTextView;
     private TextView totalTextView;
     
     // define instance variables that should be saved
     private String billAmountString = "";
     private float tipPercent = .15f;
+    private float totalAmount = 0;
     
     // set up preferences
     private SharedPreferences prefs;
@@ -44,6 +48,7 @@ implements OnEditorActionListener, OnClickListener {
         percentTextView = (TextView) findViewById(R.id.percentTextView);
         percentUpButton = (Button) findViewById(R.id.percentUpButton);
         percentDownButton = (Button) findViewById(R.id.percentDownButton);
+        saveButton = (Button) findViewById(R.id.saveButton);
         tipTextView = (TextView) findViewById(R.id.tipTextView);
         totalTextView = (TextView) findViewById(R.id.totalTextView);
 
@@ -51,7 +56,7 @@ implements OnEditorActionListener, OnClickListener {
         billAmountEditText.setOnEditorActionListener(this);
         percentUpButton.setOnClickListener(this);
         percentDownButton.setOnClickListener(this);
-        
+        saveButton.setOnClickListener(this);
         // get default SharedPreferences object
         prefs = PreferenceManager.getDefaultSharedPreferences(this);        
     }
@@ -80,6 +85,18 @@ implements OnEditorActionListener, OnClickListener {
         
         // calculate and display
         calculateAndDisplay();
+
+        DBHandler dbHandler = new DBHandler(this);
+        dbHandler.open();
+
+        ArrayList<Tip> tipsList = dbHandler.getTips();
+        for(Tip tip : tipsList) {
+            Log.d("Tip Calculator",
+                    " ID:" + tip.getId() +
+                    " Date: " + tip.getDateStringFormatted() +
+                    " Amount: " + tip.getBillAmountFormatted() +
+                    " Tip: " + tip.getTipPercentFormatted());
+        }
     }
     
     public void calculateAndDisplay() {        
@@ -96,7 +113,7 @@ implements OnEditorActionListener, OnClickListener {
         
         // calculate tip and total 
         float tipAmount = billAmount * tipPercent;
-        float totalAmount = billAmount + tipAmount;
+        totalAmount = billAmount + tipAmount;
         
         // display the other results with formatting
         NumberFormat currency = NumberFormat.getCurrencyInstance();
@@ -127,6 +144,32 @@ implements OnEditorActionListener, OnClickListener {
             tipPercent = tipPercent + .01f;
             calculateAndDisplay();
             break;
+        case R.id.saveButton:
+
+            if(totalAmount > 0){
+                Tip tip = new Tip(0, System.currentTimeMillis(), totalAmount, tipPercent);
+                DBHandler dbHandler = new DBHandler(this);
+                dbHandler.open();
+                dbHandler.addTip(tip);
+
+                clearData();
+            }
+
+            break;
         }
+    }
+
+    public void clearData(){
+        // display the other results with formatting
+
+
+        billAmountString = "";
+        tipPercent = .15f;
+        totalAmount = 0;
+
+        billAmountEditText.setText("");
+        percentTextView.setText("15%");
+        tipTextView.setText("$0.00");
+        totalTextView.setText("$0.00");
     }
 }
